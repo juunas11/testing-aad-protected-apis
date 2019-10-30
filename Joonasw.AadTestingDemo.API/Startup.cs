@@ -1,16 +1,20 @@
 using Joonasw.AadTestingDemo.API.Authorization;
-using Joonasw.AadTestingDemo.API.Options;
+using Joonasw.AadTestingDemo.API.OpenApi;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using AuthenticationOptions = Joonasw.AadTestingDemo.API.Options.AuthenticationOptions;
 
 namespace Joonasw.AadTestingDemo.API
 {
@@ -26,13 +30,35 @@ namespace Joonasw.AadTestingDemo.API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            var authenticationOptions = _configuration.GetSection("Authentication").Get<AuthenticationOptions>();
+
+            // Authentication
+            AuthenticationOptions authenticationOptions = _configuration.GetSection("Authentication").Get<AuthenticationOptions>();
+            services.Configure<AuthenticationOptions>(_configuration.GetSection("Authentication"));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(o =>
                 {
                     o.Authority = authenticationOptions.Authority;
                     o.Audience = authenticationOptions.ClientId;
                 });
+            services.AddSingleton<IClaimsTransformation, ScopeClaimSplitTransformation>();
+
+            // Authorization
+            services.AddAuthorization(o =>
+            {
+                // Require callers to have at least one valid permission by default
+                o.DefaultPolicy = new AuthorizationPolicyBuilder()
+                    .AddRequirements(new AnyValidPermissionRequirement())
+                    .Build();
+                // Create a policy for each action that can be done in the API
+                foreach (string action in Actions.All)
+                {
+                    o.AddPolicy(action, policy => policy.AddRequirements(new ActionAuthorizationRequirement(action)));
+                }
+            });
+            services.AddSingleton<IAuthorizationHandler, AnyValidPermissionRequirementHandler>();
+            services.AddSingleton<IAuthorizationHandler, ActionAuthorizationRequirementHandler>();
+
+            // Swagger / OpenAPI document setup
             services.AddSwaggerGen(o =>
             {
                 // Setup our document's basic info
@@ -42,39 +68,26 @@ namespace Joonasw.AadTestingDemo.API
                     Version = "1.0"
                 });
 
+                // Define that the API requires OAuth 2 tokens
                 o.AddSecurityDefinition("aad-jwt", new OpenApiSecurityScheme
                 {
                     Type = SecuritySchemeType.OAuth2,
                     Flows = new OpenApiOAuthFlows
                     {
+                        // We only define implicit though the UI does support authorization code, client credentials and password grants
+                        // We don't use authorization code here because it requires a client secret, which makes this sample more complicated by introducing secret management
+                        // Client credentials could work, but not when the UI client id == API client id. We'd need a separate registration and granting app permissions to that. And also needs a secret.
+                        // Password grant we don't use because... you shouldn't be using it.
                         Implicit = new OpenApiOAuthFlow
                         {
                             AuthorizationUrl = new Uri(authenticationOptions.AuthorizationUrl),
-                            Scopes = new Dictionary<string, string>
-                            {
-                                [authenticationOptions.ApplicationIdUri + "/" + DelegatedPermissions.ReadThings] = "Read things"
-                            }
+                            Scopes = DelegatedPermissions.All.ToDictionary(p => $"{authenticationOptions.ApplicationIdUri}/{p}")
                         }
                     }
                 });
-                o.AddSecurityRequirement(new OpenApiSecurityRequirement
-                {
-                    {
-                        new OpenApiSecurityScheme
-                        {
-                            Reference = new OpenApiReference
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "aad-jwt"
-                            },
-                            UnresolvedReference = true
-                        },
-                        new List<string>
-                        {
-                            authenticationOptions.ApplicationIdUri + "/" + DelegatedPermissions.ReadThings
-                        }
-                    }
-                });
+
+                // Add security requirements to operations based on [Authorize] attributes
+                o.OperationFilter<OAuthSecurityRequirementOperationFilter>();
 
                 // Include XML comments to documentation
                 string xmlDocFilePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "Joonasw.AadTestingDemo.API.xml");
@@ -82,7 +95,10 @@ namespace Joonasw.AadTestingDemo.API
             });
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(
+            IApplicationBuilder app,
+            IWebHostEnvironment env,
+            IOptions<AuthenticationOptions> authenticationOptions)
         {
             if (env.IsDevelopment())
             {
@@ -99,11 +115,13 @@ namespace Joonasw.AadTestingDemo.API
                 endpoints.MapControllers().RequireAuthorization();
             });
 
+            // Swagger / OpenAPI document
             app.UseSwagger();
+            // The interactive documentation
             app.UseSwaggerUI(o =>
             {
                 o.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-                o.OAuthClientId(_configuration["Authentication:ClientId"]);
+                o.OAuthClientId(authenticationOptions.Value.ClientId);
             });
         }
     }

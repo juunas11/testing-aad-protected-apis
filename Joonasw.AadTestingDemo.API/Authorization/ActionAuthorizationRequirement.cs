@@ -2,7 +2,7 @@
 
 namespace Joonasw.AadTestingDemo.API.Authorization
 {
-    public class ActionAuthorizationRequirement : IAuthorizationRequirement
+    internal class ActionAuthorizationRequirement : IAuthorizationRequirement
     {
         public ActionAuthorizationRequirement(string action)
         {

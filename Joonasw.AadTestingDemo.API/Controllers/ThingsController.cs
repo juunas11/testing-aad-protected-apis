@@ -19,7 +19,7 @@ namespace Joonasw.AadTestingDemo.API.Controllers
         public IActionResult Get()
         {
             // Fake data
-            var data = new[]
+            ThingModel[] data = new[]
             {
                 new ThingModel
                 {
@@ -30,6 +30,31 @@ namespace Joonasw.AadTestingDemo.API.Controllers
                 {
                     One = "one",
                     Two = "two"
+                }
+            };
+            return Ok(data);
+        }
+
+        /// <summary>
+        /// Gets all other things
+        /// </summary>
+        [Authorize(Actions.ReadOtherThings)]
+        [HttpGet("other")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ThingModel[]))]
+        public IActionResult GetOthers()
+        {
+            // Fake data
+            ThingModel[] data = new[]
+            {
+                new ThingModel
+                {
+                    One = "3",
+                    Two = "4"
+                },
+                new ThingModel
+                {
+                    One = "three",
+                    Two = "four"
                 }
             };
             return Ok(data);
