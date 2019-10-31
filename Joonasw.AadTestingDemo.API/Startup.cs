@@ -31,8 +31,16 @@ namespace Joonasw.AadTestingDemo.API
         {
             services.AddControllers();
 
-            // Authentication
             AuthenticationOptions authenticationOptions = _configuration.GetSection("Authentication").Get<AuthenticationOptions>();
+            AddAuthentication(services, authenticationOptions);
+
+            AddAuthorization(services);
+
+            AddSwagger(services, authenticationOptions);
+        }
+
+        private void AddAuthentication(IServiceCollection services, AuthenticationOptions authenticationOptions)
+        {
             services.Configure<AuthenticationOptions>(_configuration.GetSection("Authentication"));
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(o =>
@@ -41,8 +49,10 @@ namespace Joonasw.AadTestingDemo.API
                     o.Audience = authenticationOptions.ClientId;
                 });
             services.AddSingleton<IClaimsTransformation, ScopeClaimSplitTransformation>();
+        }
 
-            // Authorization
+        private static void AddAuthorization(IServiceCollection services)
+        {
             services.AddAuthorization(o =>
             {
                 // Require callers to have at least one valid permission by default
@@ -57,8 +67,10 @@ namespace Joonasw.AadTestingDemo.API
             });
             services.AddSingleton<IAuthorizationHandler, AnyValidPermissionRequirementHandler>();
             services.AddSingleton<IAuthorizationHandler, ActionAuthorizationRequirementHandler>();
+        }
 
-            // Swagger / OpenAPI document setup
+        private static void AddSwagger(IServiceCollection services, AuthenticationOptions authenticationOptions)
+        {
             services.AddSwaggerGen(o =>
             {
                 // Setup our document's basic info
