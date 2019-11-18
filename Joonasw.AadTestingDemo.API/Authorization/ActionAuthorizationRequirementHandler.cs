@@ -13,8 +13,14 @@ namespace Joonasw.AadTestingDemo.API.Authorization
             // Checks the user has a permission accepted for this action
             string[] delegatedPermissions = context.User.FindAll(Claims.ScopeClaimType).Select(c => c.Value).ToArray();
             string[] acceptedDelegatedPermissions = AuthorizedPermissions.DelegatedPermissionsForActions[requirement.Action];
+            string[] appPermissionsOrRoles = context.User.FindAll(Claims.AppPermissionOrRolesClaimType).Select(c => c.Value).ToArray();
+            string[] acceptedApplicationPermissions = AuthorizedPermissions.ApplicationPermissionsForActions[requirement.Action];
 
-            if (acceptedDelegatedPermissions.Any(accepted => delegatedPermissions.Any(available => accepted == available)))
+            if (acceptedDelegatedPermissions.Any(accepted => delegatedPermissions.Contains(accepted)))
+            {
+                context.Succeed(requirement);
+            }
+            else if (acceptedApplicationPermissions.Any(accepted => appPermissionsOrRoles.Contains(accepted)))
             {
                 context.Succeed(requirement);
             }

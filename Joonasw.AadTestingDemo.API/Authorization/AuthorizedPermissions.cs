@@ -14,5 +14,16 @@ namespace Joonasw.AadTestingDemo.API.Authorization
             [Actions.ReadThings] = new[] { DelegatedPermissions.ReadThings },
             [Actions.ReadOtherThings] = new[] { DelegatedPermissions.ReadOtherThings }
         };
+
+        /// <summary>
+        /// Contains the allowed application permissions for each action.
+        /// If the caller has one of the allowed ones, they should be allowed
+        /// to perform the action.
+        /// </summary>
+        public static IReadOnlyDictionary<string, string[]> ApplicationPermissionsForActions = new Dictionary<string, string[]>
+        {
+            [Actions.ReadThings] = new[] { ApplicationPermissions.ReadAllThings },
+            [Actions.ReadOtherThings] = new[] { ApplicationPermissions.ReadAllOtherThings }
+        };
     }
 }

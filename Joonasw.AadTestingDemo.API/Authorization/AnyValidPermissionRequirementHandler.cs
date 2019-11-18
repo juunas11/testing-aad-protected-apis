@@ -11,12 +11,19 @@ namespace Joonasw.AadTestingDemo.API.Authorization
         {
             // Checks caller has at least one valid permission
             string[] delegatedPermissions = context.User.FindAll(Claims.ScopeClaimType).Select(c => c.Value).ToArray();
-            string[] allAcceptedPermissions = DelegatedPermissions.All;
-            if (delegatedPermissions.Any(p => allAcceptedPermissions.Contains(p)))
+            string[] allAcceptedDelegatedPermissions = DelegatedPermissions.All;
+            string[] appPermissionsOrRoles = context.User.FindAll(Claims.AppPermissionOrRolesClaimType).Select(c => c.Value).ToArray();
+            string[] allAcceptedApplicationPermissions = ApplicationPermissions.All;
+            if (delegatedPermissions.Any(p => allAcceptedDelegatedPermissions.Contains(p)))
             {
                 // Caller has a valid delegated permission
                 // If your API has different user roles,
                 // this is where you would check that, before calling context.Succeed()
+                context.Succeed(requirement);
+            }
+            else if (appPermissionsOrRoles.Any(p => allAcceptedApplicationPermissions.Contains(p)))
+            {
+                // Caller has a valid application permission
                 context.Succeed(requirement);
             }
 
