@@ -1,3 +1,6 @@
 ﻿.vs
 Joonasw.AadTestingDemo.API/bin
 Joonasw.AadTestingDemo.API/obj
+Joonasw.AadTestingDemo.IntegrationTests/bin
+Joonasw.AadTestingDemo.IntegrationTests/obj
+*.user
