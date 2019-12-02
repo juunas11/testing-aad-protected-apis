@@ -23,7 +23,7 @@ namespace Joonasw.AadTestingDemo.IntegrationTests.Utils
                     builder.ConfigureAppConfiguration(configBuilder =>
                     {
                         // Adds user secrets for the integration test project
-                        // Contains the Key Vault URL for me
+                        // Contains the Key Vault URL and API authentication settings for me
                         configBuilder.AddUserSecrets<AppFixture>();
 
                         // Build temporary config, get Key Vault URL, add Key Vault as config source
