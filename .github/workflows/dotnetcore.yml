@@ -33,3 +33,11 @@ jobs:
       working-directory: Joonasw.AadTestingDemo.IntegrationTests
       env:
         IntegrationTest__ApiAppIdUri: ${{ steps.getKvSecrets.outputs['IntegrationTest--ApiAppIdUri'] }}
+        IntegrationTest__AppAuthentication__ClientId: ${{ steps.getKvSecrets.outputs['IntegrationTest--AppAuthentication--ClientId'] }}
+        IntegrationTest__AppAuthentication__ClientSecret: ${{ steps.getKvSecrets.outputs['IntegrationTest--AppAuthentication--ClientSecret'] }}
+        IntegrationTest__Authority: ${{ steps.getKvSecrets.outputs['IntegrationTest--Authority'] }}
+        IntegrationTest__UserAuthentication__ClientId: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--ClientId'] }}
+        IntegrationTest__UserAuthentication__ClientSecret: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--ClientSecret'] }}
+        IntegrationTest__UserAuthentication__Password: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--Password'] }}
+        IntegrationTest__UserAuthentication__TokenUrl: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--TokenUrl'] }}
+        IntegrationTest__UserAuthentication__Username: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--Username'] }}
