@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Net.Http;
 
@@ -31,12 +33,23 @@ namespace Joonasw.AadTestingDemo.IntegrationTests.Utils
                         string keyVaultUrl = config["IntegrationTest:KeyVaultUrl"];
                         if (!string.IsNullOrEmpty(keyVaultUrl))
                         {
-                            // This will use Managed Identity / local user authentication
-                            // For this to work in a CI pipeline,
-                            // you will need to somehow pass in a client id + client secret
-                            // and use a different overload that takes those.
-                            // Locally doing this is better though.
-                            configBuilder.AddAzureKeyVault(keyVaultUrl);
+                            // CI / CD pipeline sets up a credentials environment variable to use
+                            var credentialsJson = Environment.GetEnvironmentVariable("AZURE_CREDENTIALS");
+                            // If it is not present, we are running locally
+                            if (string.IsNullOrEmpty(credentialsJson))
+                            {
+                                // Use local user authentication
+                                configBuilder.AddAzureKeyVault(keyVaultUrl);
+                            }
+                            else
+                            {
+                                // Use credentials in JSON object
+                                var credentials = (JObject)JsonConvert.DeserializeObject(credentialsJson);
+                                var clientId = credentials?.Value<string>("clientId");
+                                var clientSecret = credentials?.Value<string>("clientSecret");
+                                configBuilder.AddAzureKeyVault(keyVaultUrl, clientId, clientSecret);
+                            }
+
                             config = configBuilder.Build();
                         }
 
