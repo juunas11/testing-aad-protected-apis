@@ -31,3 +31,5 @@ jobs:
     - name: Test with dotnet
       run: dotnet test --configuration Release
       working-directory: Joonasw.AadTestingDemo.IntegrationTests
+      env:
+        IntegrationTest__ApiAppIdUri: ${{ steps.getKvSecrets.outputs['IntegrationTest--ApiAppIdUri'] }}
