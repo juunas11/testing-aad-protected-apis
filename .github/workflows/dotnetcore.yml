@@ -1,4 +1,4 @@
-name: .NET Core
+name: Build and test
 
 on:
   push:
@@ -18,26 +18,13 @@ jobs:
         dotnet-version: 3.1.100
     - name: Build with dotnet
       run: dotnet build --configuration Release
-    - name: Login win Azure Credentials
-      uses: Azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
-    - name: Get Secrets from Key Vault
-      uses: Azure/get-keyvault-secrets@v1.0
-      with:
-        keyvault: ${{ secrets.KEY_VAULT_NAME }}
-        secrets: 'IntegrationTest--ApiAppIdUri, IntegrationTest--AppAuthentication--ClientId, IntegrationTest--AppAuthentication--ClientSecret, IntegrationTest--Authority, IntegrationTest--UserAuthentication--ClientId, IntegrationTest--UserAuthentication--ClientSecret, IntegrationTest--UserAuthentication--Password, IntegrationTest--UserAuthentication--TokenUrl, IntegrationTest--UserAuthentication--Username'
-      id: getKvSecrets
     - name: Test with dotnet
       run: dotnet test --configuration Release
       working-directory: Joonasw.AadTestingDemo.IntegrationTests
       env:
-        IntegrationTest__ApiAppIdUri: ${{ steps.getKvSecrets.outputs['IntegrationTest--ApiAppIdUri'] }}
-        IntegrationTest__AppAuthentication__ClientId: ${{ steps.getKvSecrets.outputs['IntegrationTest--AppAuthentication--ClientId'] }}
-        IntegrationTest__AppAuthentication__ClientSecret: ${{ steps.getKvSecrets.outputs['IntegrationTest--AppAuthentication--ClientSecret'] }}
-        IntegrationTest__Authority: ${{ steps.getKvSecrets.outputs['IntegrationTest--Authority'] }}
-        IntegrationTest__UserAuthentication__ClientId: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--ClientId'] }}
-        IntegrationTest__UserAuthentication__ClientSecret: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--ClientSecret'] }}
-        IntegrationTest__UserAuthentication__Password: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--Password'] }}
-        IntegrationTest__UserAuthentication__TokenUrl: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--TokenUrl'] }}
-        IntegrationTest__UserAuthentication__Username: ${{ steps.getKvSecrets.outputs['IntegrationTest--UserAuthentication--Username'] }}
+        IntegrationTest__KeyVaultUrl: ${{ secrets.KEY_VAULT_URL }}
+        Authentication__Authority: ${{ secrets.API_AUTHORITY }}
+        Authentication__AuthorizationUrl: ${{ secrets.API_AUTHORIZATION_URL }}
+        Authentication__ClientId: ${{ secrets.API_CLIENT_ID }}
+        Authentication__ApplicationIdUri: ${{ secrets.API_APP_ID_URI }}
+        AzureServicesAuthConnectionString: RunAs=App;AppId=${{ secrets.AZURE_CREDENTIALS.clientId }};AppKey=${{ secrets.AZURE_CREDENTIALS.clientSecret }};TenantId=${{ secrets.AZURE_CREDENTIALS.tenantId }}
