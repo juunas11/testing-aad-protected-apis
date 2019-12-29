@@ -27,4 +27,4 @@ jobs:
         Authentication__AuthorizationUrl: ${{ secrets.API_AUTHORIZATION_URL }}
         Authentication__ClientId: ${{ secrets.API_CLIENT_ID }}
         Authentication__ApplicationIdUri: ${{ secrets.API_APP_ID_URI }}
-        AzureServicesAuthConnectionString: RunAs=App;AppId=${{ secrets.AZURE_CREDENTIALS.clientId }};AppKey=${{ secrets.AZURE_CREDENTIALS.clientSecret }};TenantId=${{ secrets.AZURE_CREDENTIALS.tenantId }}
+        AzureServicesAuthConnectionString: ${{ join('RunAs=App;AppId=', secrets.AZURE_CREDENTIALS.clientId, ';AppKey=', secrets.AZURE_CREDENTIALS.clientSecret, ';TenantId=', secrets.AZURE_CREDENTIALS.tenantId) }}
