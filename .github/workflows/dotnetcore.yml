@@ -1,0 +1,33 @@
+name: .NET Core
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.100
+    - name: Build with dotnet
+      run: dotnet build --configuration Release
+    - name: Login win Azure Credentials
+      uses: azure/actions/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Get Secrets from Key Vault
+      uses: actions/get-keyvault-secrets
+      with:
+        keyvault: ${{ secrets.KEY_VAULT_NAME }}
+        secrets: 'IntegrationTest--ApiAppIdUri, IntegrationTest--AppAuthentication--ClientId, IntegrationTest--AppAuthentication--ClientSecret, IntegrationTest--Authority, IntegrationTest--UserAuthentication--ClientId, IntegrationTest--UserAuthentication--ClientSecret, IntegrationTest--UserAuthentication--Password, IntegrationTest--UserAuthentication--TokenUrl, IntegrationTest--UserAuthentication--Username'
+      id: getKvSecrets
+    - name: Test with dotnet
+      run: dotnet test --configuration Release
+      working-directory: Joonasw.AadTestingDemo.IntegrationTests
