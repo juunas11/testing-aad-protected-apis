@@ -1,7 +1,7 @@
 # Sample ASP.NET Core API requiring Azure AD authentication
 
 This app was made for my blog article series where we look at testing
-Azure AD-protected APIs.
+Azure AD-protected APIs..
 
 1. [https://joonasw.net/view/testing-azure-ad-protected-apis-part-1-swagger-ui](https://joonasw.net/view/testing-azure-ad-protected-apis-part-1-swagger-ui)
 1. [https://joonasw.net/view/testing-azure-ad-protected-apis-part-2-postman](https://joonasw.net/view/testing-azure-ad-protected-apis-part-2-postman)
