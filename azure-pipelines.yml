@@ -14,7 +14,7 @@ steps:
 - script: dotnet build --configuration Release
   displayName: Build with dotnet
 
-- script: dotnet test --configuration Release
+- script: dotnet test --configuration Release --logger trx
   displayName: Test with dotnet
   workingDirectory: Joonasw.AadTestingDemo.IntegrationTests
   env:
@@ -24,3 +24,9 @@ steps:
     Authentication__ClientId: $(API_CLIENT_ID)
     Authentication__ApplicationIdUri: $(API_APP_ID_URI)
     AZURE_CREDENTIALS: $(AZURE_CREDENTIALS)
+
+- task: PublishTestResults@2
+  condition: succeededOrFailed()
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '**/*.trx'
