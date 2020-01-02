@@ -5,10 +5,22 @@ pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: UseDotNet@2
+  displayName: Setup .NET Core
+  inputs:
+    packageType: 'sdk'
+    version: '3.1.x'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- script: dotnet build --configuration Release
+  displayName: Build with dotnet
+
+- script: dotnet test --configuration Release
+  displayName: Test with dotnet
+  workingDirectory: Joonasw.AadTestingDemo.IntegrationTests
+  env:
+    IntegrationTest__KeyVaultUrl: $(KEY_VAULT_URL)
+    Authentication__Authority: $(API_AUTHORITY)
+    Authentication__AuthorizationUrl: $(API_AUTHORIZATION_URL)
+    Authentication__ClientId: $(API_CLIENT_ID)
+    Authentication__ApplicationIdUri: $(API_APP_ID_URI)
+    AZURE_CREDENTIALS: $(AZURE_CREDENTIALS)
